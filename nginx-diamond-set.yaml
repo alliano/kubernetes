@@ -1,0 +1,43 @@
+# saat menggunakan repicaSet atau replicaController pod akan diajalankan secara random di node oleh kubernetes
+# jika kita ingin menjalankan pod di setiap node di kubernetes, dan tiap pod hanya boleh jalan di 1 node, kita bisa menggunakan DaemonSet
+# secara default DaemonSet akan menajalankan pod disetiap node yang ada di kubernetes cluster, kecuali jika kita memintanya jalan
+# di node tertentu
+apiVersion: apps/v1
+metadata:
+  name: nginx-daemond-set
+  annotations:
+    description: this is example for create deamonSet
+spec:
+  selector:
+    matchLabels:
+      app: nginx-daemon
+    matchExpressions:
+      - key: environment
+        operator: In
+        values:
+          - "dev"
+          - "prod"
+          - "test"
+  template:
+    metadata:
+      name: nginx
+      labels:
+        app: nginx-daemon
+        environment: dev
+      annotations:
+        description: example to create daemonSet
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              port: 80
+              path: /
+            initialDelaySeconds: 4
+            periodSeconds: 10
+            failureThreshold: 4
+            successThreshold: 3
+            timeoutSeconds: 5

@@ -1,0 +1,8 @@
+# untuk membaut pod dengan nama yang sama itu sebenarnya bisa tapi dengan sarat pod tersebut berapa
+# pada namespace yang berbeda
+# membuat namespace bukan berarti pod akan tersisolasi
+# pod pada namespace yang berbeda tetap bisa berkomunikasi
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: replicaiton-controller

@@ -1,0 +1,85 @@
+# Service adalah resource di kubernetes yang digunakan untuk memabuat suatu gerbang untuk
+# untuk mengakses satu atau lebih Pod
+# Service memiliki Ip address dan port yang tidak pernah berubah selama service itu ada
+# Client bisa mengakses service tersebut, dan secara otomatis akan meneruskan ke Pod yang ada dibelakang service tersebut
+# Dengan begini client tidak perlu mengetahui diman lokasi tiap Pod, dan pod bisa bertambah, berkurang, atau berpindah tampa harus mengganggu client
+# untuk megakases service kita bisa guankan command kubectl exec -it nama_pod_serviceNya -- /bin/bash
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: nginx
+  template:
+    metadata:
+      name: nginx
+      labels:
+        name: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80
+
+---
+# untuk selector nya harus sama dengan template
+# disini kita targetkan pada pod dengan nama nginx degan port 80
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  selector:
+    name: nginx
+  ports:
+  - port: 8080
+    targetPort: 80
+
+---
+# ini pod utuk test mengakses service dari kubernetes cluster
+apiVersion: v1
+kind: Pod
+metadata:
+  name: curl
+  labels:
+    name: curl
+spec:
+  containers:
+  - name: curl
+    image: khannedy/nginx-curl
+    resources:
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+
+# Cara mengakses Sercvice ada beberapa cara
+# menggunakan Ip dan port nya
+# langkah :
+# masuk ke pod yang memiliki service tujuan dengan comang kubectl exec -it namaPodnya --/bin/sh
+# lalu ketikan env. maka akan terlihat semua environment dari pod tersebut
+# dan kita bisa mengakses dengan menugunakan ip dan port yang tertera pada env
+#
+# menggunakan DNS
+# jika kita menggunkan dns sangat simpel sekali caranya kita cukup masuk
+# pada pod yang meiliki service yang mau kita target kubectl exec -it namaPodnya --/bin/sh
+# dan setelah itu kita tgl menggunakan name space nya untuk mengakses
+# service nya contoh curl http://nginx-service.default.svc.cluster.local:portnya
+
+# TIPE SERVICE
+# service memiliki bebrapa tipe yaitu:
+# cluster IP => mengexpose service didalam inrternal kubernetes cluster
+# ExternalName => memetakan service ke ExternalName(misalnya: example.com)
+# NoePort => mengekspose service pada setiap IP node dan port yang sama. kita dapat mengekspose service dalam tipe ini dari luar cluster
+# melalui <NodeIp>:<NodePort>
+# LoadBalancer => menngekspose service secara external dengan menggunakan LoadBalancer yang disediakan oleh penyedia layanan cloud
+
+# Cara untuk mengekspose service:
+# menggunakan NodePort, sehingga Node akan membukakan port yang akan meneruskan request ke service yang dituju.
+# menggunakan LoadBalancer, sehingga serivce dapat diakses melalui LoadBalancer, dan LoadBalancer akan memenruskan requst ke NodePort
+# dan akan diteruskan ke Service
+# menggunakn Ingress, yang man Ingress adalan resource yang memang ditujukan untuk mengekspose Service. namun Ingress hanya bekerja di lever HTTP

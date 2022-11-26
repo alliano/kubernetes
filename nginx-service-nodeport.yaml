@@ -1,0 +1,42 @@
+# Contoh cara mengekspos keuar dengan menggunakan nodePort
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx-node-port
+  labels:
+    app: load-balancer
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: load-balancer
+      name: nginx-node-port
+  template:
+    metadata:
+      name: nginx-node-port
+      labels:
+        name: nginx-node-port
+        app: load-balancer
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service-nodeport
+  labels:
+    app: service-node-port
+spec:
+  type: NodePort
+  selector:
+    name: snginx-service-nodeport
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30001

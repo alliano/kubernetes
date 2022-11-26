@@ -1,0 +1,45 @@
+# di kubernetes ada 3 pengecekan sebelum applikasi di runnig atau padasaat applikasi running
+# liveness, readines, startup pada kubernetes
+# kubelet menggunakan liveness untuk mengecek kapan perlu merestart pod
+# misal saat liveness probe pada pod tidak merespon kubelet secara otomatis akan merestart pod
+# redines prob => untuk mengecek apakan pod siap untuk menerima trafic
+# startup prob => untuk mengecek apakah pod sudah berjalan, jika belum berjalan makan kubelet
+# tidaka akan melakukan pengecekan livenes dan readines pada pod
+# startup pod cocok digunakan untuk pod yang membuatuhkan proses start yang lama
+# untuk meggunakan pod kita bisa menbahkan statement (liveness, readynes, startup) pada scope containers
+# dan didalam scope tersebut kita :
+# initialDelaySecond => waktu setelah pod jalan dan dilakukan pengecekan, default nya 0 detik
+# priodSecons => sebarapa sering pengecekan dilakukan, default nya 10 detik
+# timeoutSeconds => waktui time out jika gagal pegecekan defaul nya 1 detik
+# successThreshold => minimum diangap success setelah berstatus failure, dafault nya 1 detik
+# failureThreshold => minimum diangap gagal, default nya 3 detik
+
+# dan dialam scope probe nya kita bisa setup konfigurasi nya
+# mekanisme pengecekan pod bisa dilakukan menggunnakan HTTP GET,TCP SOCKET,Command exc
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-with-probe
+  labels:
+    version: v3.0.2
+    team: payment
+    env: development
+  annotations:
+    description: this app build to handle if the server proxy is gona be down
+    author: Alliano, Denji
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      ports:
+        - containerPort: 80
+      livenessProbe:
+        httpGet:
+          path: /404
+          port: 80
+        initialDelaySeconds: 0
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 3

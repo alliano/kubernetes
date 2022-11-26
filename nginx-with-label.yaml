@@ -1,0 +1,18 @@
+# untuk membuat label kita bisa menambahakan statement labels didalam scope metadata
+# statement label digunakan untuk memberikan infromasi pada applikasi misal seperti version pada applikasi
+# nama team dari pengembang nya misal finance atau status environment
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-with-label
+  labels:
+    team-develop: finance
+    version: v1.0.2
+    envrionment: production
+    maintanace: meira
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      ports:
+        - containerPort: 80

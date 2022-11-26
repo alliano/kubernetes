@@ -1,0 +1,28 @@
+# untuk memabuat node selector kita harus menakbahakan label kepada
+# node yang akan kita gunakan untuk menjalankan pod dll
+# untuk menambahka label ke node kita bisa menggunakan command
+# kubectl label nodes nama_nodenya key=value
+# contoh kubectl label nodes minikube processor=core-i-11
+# setelah kita membaut label maka pod yang kita akan deploy pada scope
+# spec kita harus menambahkan statement nodeSelector: dan didalam scope
+# kita harus isikan key dan value sesuai dengan apa yang kita set pada node tujuan kita
+piVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    name: nginx
+  annotations:
+    desc: loadBalancer
+spec:
+  nodeSelector:
+    processor: "core-i-11"
+  containers:
+  - name: nginx
+    image: nginx
+    resources:
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+    ports:
+      - containerPort: 80

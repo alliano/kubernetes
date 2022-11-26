@@ -1,0 +1,32 @@
+# replication controller bertugas untuk memastikan bahwa pod selalu berjalan
+# jika pod mati maka replication controler akan secara otomatis membuat pod untuk menggantikan
+# pod yang mati atau hilang tersebut
+# replication controller biasanya digunakan untuk menangani lebih dari 1 pod
+# replicaiton controller akan memastikan pod berjalan sesuai dengan jumlah yang ditentukan
+#
+# untuk menghapus replication controller kita bisa menggunakan perintah
+# kubectl delete rc nginx-replicaiton-controller => ini menghapus replication controller dan pod nya
+# kubectl delete rc nginx-replication-controller --cascade=false => ini menghapus replication controller nya saja pod nya kaga:)
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: nginx-replication-controller
+spec:
+  replicas: 3
+  selector:
+    app: nginx
+  template:
+    metadata:
+      name: nginx
+      labels:
+        app: nginx
+        version: v1.0.3
+        team: backend-engginer
+      annotations:
+        description: this app to represents how to create replication controller
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80

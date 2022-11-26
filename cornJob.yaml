@@ -1,0 +1,22 @@
+# membuat corn job di kubernetes
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: job-secheduler
+  annotations:
+    description: this job use to export database in 1 day onece
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: corn-job
+          labels:
+            name: corn-job
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: nodejs-cornjob
+              image: khannedy/nodejs-job
+

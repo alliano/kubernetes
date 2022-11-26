@@ -1,0 +1,23 @@
+# Job biasa digunakan pada applikasi atau Pod yang haya berjalan sekali
+# contohnya seperti backup database, import data, export data dan lain-lain
+# untuk membuat job kita bisa memabuat konfigurasu file yaml sebagai berikut
+# compretions: => jumlah pod yang akan dijalankan saat melakukan job
+# parallelism: => jumlah pod yang akan jalan pada waktu bersamaan
+# disni saya set compretions: 6 dan parallelism: 3 berarti nanti
+# pod yang akan digunakan ada 6 dan sekali jalan akan menajalankan 3 pod
+# maka job akan dilakukan 2x
+# dalam membaut job pada statement restartPolicy: wajib diberi value Never
+# agar job nanti tidak restart
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nodejs-job
+spec:
+  completions: 6
+  parallelism: 3
+  template:
+    spec:
+      containers:
+      - name: nodejs-job
+        image: khannedy/nodejs-job
+      restartPolicy: Never

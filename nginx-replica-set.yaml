@@ -1,0 +1,35 @@
+# replicaSet ini hadir untuk menggantikan replicationController
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx-replicaset
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      name: nginx
+      labels:
+        app: nginx
+      annotations:
+        description: this application to handle if the message broker is gona be down
+        version: v3.0.2
+        team: backend-engginer
+        env: production
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 5
+            successThreshold: 1

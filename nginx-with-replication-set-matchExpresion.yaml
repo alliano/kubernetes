@@ -1,0 +1,51 @@
+# di matchExpression kita bisa menambahakan beberapa expresi
+# untuk menambahkan expresi kita bisa menamabhkan statement operator dalam scope matchExpression->key
+# dan dengan matchExpressions kita bisa menambahkan beberapa value (key dan value)
+# Operasi yang bisa dipakai : In -> value label harus ada di value In
+#                           : NotIn -> value lable tidak boleh ada di value In
+#                           : Exist -> label harus ada
+#                           : NotExist -> label tidak boleh ada
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx-replica-set-match-expression
+spec:
+  replicas: 3
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - nginx
+          - replicaSet_matchExpressions
+      - key: environment
+        operator: In
+        values:
+          - production
+          - test
+          - development
+  template:
+    metadata:
+      name: nginx
+      labels:
+        app: nginx
+        environment: production
+      annotations:
+        descriptions: this application build by own alliano
+        version: v3.56
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3

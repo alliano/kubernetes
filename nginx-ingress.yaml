@@ -1,0 +1,82 @@
+# MASALAH SAAT MENGEKSPOSE SERVICE
+
+# NODEPORT
+# Jka Menggunakan NodePort
+# maka semua node harus terekspose ke public
+# client harus tau semua ip address dari semua node
+
+# LOADBALANCER
+# Jka menggunakan LoadBalancer
+# maka semua LoadBalancer harus terekspose ke public
+# client harus tau semua ip address dari semua LoadBalancer
+
+
+# INGRESS
+# ingress adalah salahsatu cara untuk mengekspose service
+# berbeda dengan LoadBalancer ataupun NodePort, jika menggunakan ingress
+# client hanya butuh tau satu lokasi ingress
+# ketika client melakukan request ke ingress, pemilihan service nya ditentukan oleh
+# hostnema dari request
+# ingress hanya mendukug protokol HTTP
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      name: nginx-ingress
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 4
+            periodSeconds: 5
+            failureThreshold: 5
+            successThreshold: 1
+            timeoutSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  selector:
+    app: nginx
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+  labels:
+    app: nginx-ingress
+spec:
+  rules:
+  - host: dev.alliano.net
+    http:
+      paths:
+      - pathType: Exact
+        path: "/"
+        backend:
+          service:
+            name: nginx-service
+            port:
+              number: 80
+

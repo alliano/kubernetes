@@ -1,0 +1,20 @@
+# untuk membuat annotation kita bisa menambahakan statment annotations didalam scope metadata
+# lalu didalam scope annotations kita bisa tuliskan apapun yang kita ingin tuliskan
+# bisasanya annotation digunakan utuk menuliskan deskipsi dari app yang dibuat
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-with-annotation
+  labels:
+    version: v11.0.12
+    team: quality-assurance
+    env: development
+  annotations:
+    description: application for handle message broker
+
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      ports:
+        - containerPort: 80
