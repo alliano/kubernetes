@@ -1,0 +1,74 @@
+# pod dengan multi container
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx
+  labels:
+    name: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+    matchExpressions:
+      - key: multi-container
+        operator: In
+        values:
+          - "yes"
+  replicas: 3
+  template:
+    metadata:
+      name : multi-container
+      labels:
+        app: nginx
+        multi-container: "yes"
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80
+        - name: nodejs-web
+          image: khannedy/nodejs-web
+          ports:
+            - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  selector:
+    app: nginx
+  ports:
+  - port: 8080
+    targetPort: 80
+    name: nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodejs-service
+  labels:
+    app: nginx
+spec:
+  selector:
+    app: nginx
+  ports:
+    - port: 3000
+      targetPort: 3000
+      name: nodejs-web
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: curl
+  labels:
+    name: curl
+spec:
+  containers:
+  - name: curl
+    image: khannedy/nginx-curl
+    resources:
+      limits:
+        memory: "128Mi"
+        cpu: "500m"

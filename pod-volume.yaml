@@ -1,0 +1,34 @@
+# Jenis Jenis Volume
+# emptyDir => direktori sederhana yang kosong
+# hostPath => digunakan untuk mengsharing di node ke pod
+# gitRepo => direktori yang dibuat pertamakali dengan mengclone git repository
+# nfs => sharing network file system
+# dan lain lain masih banyak lagi https://kubernetes.io/id/docs/concepts/storage/volumes/#jenis-jenis-volume/
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: example-volume
+spec:
+  replicas: 3
+  selector:
+    matchExpressions:
+      - key: name
+        operator: In
+        values:
+          - "nodejs-writer"
+  template:
+    metadata:
+      name: nodejs-writer
+      labels:
+        name: nodejs-writer
+    spec:
+      volumes:
+        - name: html
+          emptyDir: {}
+      containers:
+        - name: nodejs-writer
+          image: khannedy/nodejs-writer
+          volumeMounts:
+            - mountPath: /app/html
+              name: html
+

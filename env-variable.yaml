@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nodejs-writer
+  labels:
+    name: nodejs-writer
+spec:
+  volumes:
+    - name: html
+      emptyDir: {}
+  containers:
+  - name: nodejs-writer
+    image: khannedy/nodejs-writer
+    resources:
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+    ports:
+      - containerPort: 4000
+    volumeMounts:
+      - name: html
+        mountPath: /app/folder-from-env
+    env:
+      - name: HTML_LOCATION
+        value: /app/folder-from-env
+
+# ---
+# apiVersion: v1
+# kind: Pod
+# metadata:
+#   name: postgres
+#   labels:
+#     name: postgress
+# spec:
+#   volumes:
+#     - name: postgres-data
+#       emptyDir: {}
+#   containers:
+#   - name: postgres
+#     image: postgres
+#     resources:
+#       limits:
+#         memory: "128Mi"
+#         cpu: "500m"
+#     ports:
+#       - containerPort: 5432
+#     env:
+#       - name: POSTGRES_PASSWORD
+#         value: alliano361**
+#       - name: POSTGRES_USER
+#         value: alliano-dev
+#     volumeMounts:
+#       - name: postgres-data
+#         mountPath: /database/postgres
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: postgres-service
+# spec:
+#   selector:
+#     app: postgres
+#   ports:
+#   - port: 30002
+#     targetPort: 5432
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: postgres-ingres
+#   labels:
+#     name: postgres-ingres
+# spec:
+#   rules:
+#   - host: postgres.alliano.net
+#     http:
+#       paths:
+#       - pathType: Exact
+#         path: "/"
+#         backend:
+#           service:
+#             name: postgres-service
+#             port:
+#               number: 30001
+
