@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-web
+  labels:
+    version: v1.0.0.3
+  annotations:
+    description: this is example for horizontal auto scaller
+spec:
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - "nodejs"
+    matchLabels:
+      name: nodejs-web
+  template:
+    metadata:
+      name: nodejs-web
+      labels:
+        app: "nodejs"
+        name: nodejs-web
+    spec:
+      containers:
+        - name: nodejs-web
+          image: khannedy/nodejs-web:2
+          ports:
+            - containerPort: 30000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodejs-web-service
+spec:
+  type: NodePort
+  selector:
+    app: "nodejs"
+    name: nodejs-web
+  ports:
+  - port: 3000
+    targetPort: 3000
+    nodePort: 30001
+---
+# Horizontal Pod Auto Secaler
+# Adalah kemamouan secara otomatis application secaling secara horizontal dengan cara menambah pod baru dan
+# menurunkan secara otomatis jika resource yang terpakai nya berkurang.
+# HPA bekerja dengan cara mendengarkan data matrics dari setiap pod, dan jika pod mengkonsumsi resource pada
+# batas yang telah ditentukan maka HPA akan melakukan auto scaling(baik itu menambah pod atau mengurangi pod)
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hpa-auto-scaler
+spec:
+  minReplicas: 3
+  maxReplicas: 5
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nodejs-web
+    # pada block matrics ini untuk meng set kapan pod akan di scaling
+    # disini di set saat cpu usage 70% maka si matrics-server akan mereport ke HorizontalPodAutoscaler
+    # dan mentriger Deployment atau ReplicaSet(sesuai yang kita gunakan di pod yang kita buat)
+    # untuk mensecale pod (menambah pod)
+    # dan juga jikalau memory usage nya 70% maka pod juga di scale
+
+    # metrics-server bertugas untuk melisten semua pod pada node dan jikalau resource
+    # pod naik dan melebihi limit yang telah ditentukan ( dalam konteks ini 70% resource terpakai maka akan matrics-sercver akan mereport)
+    # maka matrics-server akan mereport ke HorizontalPodAutosecaler dan HorizontalPodAutoscaler akan
+    # mentriger ReplicationSet/Deployment untuk menambah Pod nya
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+

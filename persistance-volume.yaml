@@ -1,0 +1,61 @@
+# Persistance Volume
+# persistance volume hanpir mirip sama volume hanya saja cara kerjanya berbeda
+# cara pembuatan persistance volume sedikit lebih ribet dibanding Volume namun ada beberapa benefit
+# yang didapat jika menggunakan persistance volume
+
+# Jenis Jenis Persistance Volume
+# HostPath => berkas disimpan di Node, tidak direkomendasikan di production, ini hanya untuk testing
+# GCEPPersistenceDisk => Google Cloud Persistance Disk
+# AWSElasticClockStore => Amazon Web Service Persistance Disk
+# dan lain lain
+
+# Tahapan Membuat Persistance Volume
+# Membuat persistance Volume
+# Membuat Persistance Voluume Claim
+# Menambahkan Persistance Volume Claim ke Pod
+
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nodejs-writer-volume
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  capacity:
+    storage: 5Gi
+  hostPath:
+    path: /data/location
+---
+# di PersistentsVolumeClaim disisni tempat membagi resource di tiap 1 pod nya misal
+# resources:
+#   requests:
+#     storage: 1Gi
+# ini artinya disetiap pod yang menggunkan PersistentVolumeClaim ini akan mendapatkan storage sebesar 1 Giga
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nodejs-writer-volume-claim
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nodejs-writer
+spec:
+  volumes:
+    - name: html
+      persistentVolumeClaim:
+        claimName: nodejs-writer-volume-claim
+  containers:
+    - name: nodejs-writer
+      image: khannedy/nodejs-writer
+      volumeMounts:
+        - mountPath: /app/html
+          name: html

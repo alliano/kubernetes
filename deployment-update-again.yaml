@@ -1,0 +1,53 @@
+# Rollback Deployment
+# unutuk merolback deployment kita bisa menggunkan perintah kubectl rolout
+# +************************************************************************+
+# | Kubernetes rollout command            | keterangan                     |
+# +***************************************|********************************+
+# | kubectl rollout history object name   | Melihat history rollout        |
+# | kubectl rollout pause object name     | Menandai sebagai pause         |
+# | kubectl rollout resume object name    | resume pause                   |
+# | kubectl rollout restart object name   | Merestart Rollout              |
+# | kubectl rollout undo object name      | Undo ke rollout sebelumnya     |
+# +************************************************************************+
+# perintah ini sering digunkaan untuk merollback deployment ke versi sebelum nya jikalau pada deployment
+# versi terbaru ada masalah
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-web
+  labels:
+    app: nodejs-web
+spec:
+  replicas: 3
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - "deployment"
+  template:
+    metadata:
+      name: nodejs-web
+      labels:
+        app: "deployment"
+        name: nodejs-web
+      annotations:
+        description: this is example for deployment
+    spec:
+      containers:
+        - name: nodejs-web
+          env:
+            - name: version
+              value: v1.0.0.3
+          image: khannedy/nodejs-web:2
+          ports:
+            - containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+            periodSeconds: 5
+            timeoutSeconds: 7

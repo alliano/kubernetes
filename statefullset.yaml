@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nodejs-statefull-volume
+  labels:
+    app: statefull-app
+  annotations:
+    description: this is persistent volume for store data form statefull app
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  capacity:
+    storage: 5Gi
+  hostPath:
+    path: /data/location
+---
+# Stateless application
+# Pod, ReplicaController, ReplicaSet, Deployment itu semua cocok untuk applikasi jenis stateles
+# Stateles artinya applikasi kita tidak menympan state atau data. jadi jika ditengah jalan applikasi kita dihapus
+# datapt dibuat ulang dan tidak masalah.
+# namun bagai mana dengan applikasi yang stateful? contohnya seperti database? yang harus menyimpan data, dan
+# tidak bisa sembarang dihapus ditengah jalan ketika kita melakukan update applikasi
+
+# Persistent Volume dengan Stateles
+# PersistentVolume tidaka akan membantu jika kita memmiliki applikasi yang stateful, kemungkinan besar kita akan memmiliki data
+# yang indetpanden tiap Pod, walaupun jenis pod nya sama
+
+# Stateles vs Stateful
+# jika diibaratkan Stateless adalah binatang ternak, sedangkan stateful dalah binantang peliharaan
+# Hewan ternak => kita tidak peduli siapa yang mati, disembelih ataupun hilang, yang penting bisa diganti dengam hewan yang baru
+# Namun beda dengan hewan pliharaan => jika ada 1 yang sakit maka kita akan merawatnya sampai sehat, dan jika
+# mati maka kita akan mecari hewan yang karakteristiknya sama denga hewan
+
+# StatefullSet
+# adalah opbejct di kubernetes untuk memanage applikasi jenis stateful
+# StateFulSet akan memastikan nama pod yang konsisten, identitas network yang stabil dan persistentVolume yang
+# stabil untuk masing masing Pod
+# Jika ada Pod yang mati, Maka StateFulSet akan membuat Pod baru dengan informasi yang sama dengan Pod yang telah mati
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nodejs-stateful
+  labels:
+    name: nodejs-stateful
+  annotations:
+    description: this is statefull app
+spec:
+  # https://github.com/kubernetes/kubernetes/issues/69608
+  serviceName: nodejs-stateful-service
+  replicas: 3
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - "stateful"
+  volumeClaimTemplates:
+    - metadata:
+        name: nodejs-stateful-claim
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        volumeMode: Filesystem
+        resources:
+          requests:
+            storage: 1Gi
+  template:
+    metadata:
+      name: nodejs-stateful
+      labels:
+        name: nodejs-stateful
+        app: "stateful"
+      annotations:
+        description: this is app statefull
+    spec:
+      containers:
+        - name: nodejs-stateful
+          image: khannedy/nodejs-stateful
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - mountPath: /app/data
+              name: nodejs-stateful-claim
+

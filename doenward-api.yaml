@@ -1,0 +1,101 @@
+# Downward API
+# memungkinkan kita mengambiil informasi seputar pod dan node melalui env variabel
+# Downward API bukanlah RESTFULL API, ini hanya cara untuk mendapatkan informasi seputar node dan pod
+# ini adalah cara yang sangat praktis untuk meng set env berdasarkan identitas pod itu sendiri
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nodejs-env-config
+  labels:
+    env: dev
+data:
+  env: development
+  version: 2.0.1
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nodejs-env
+  labels:
+    app: nodejs-env
+  annotations:
+    team: backend development
+spec:
+  replicas: 3
+  selector:
+    matchExpressions:
+      - key: status
+        operator: In
+        values:
+          - "dev"
+    matchLabels:
+      app: nodejs-env
+  template:
+    metadata:
+      name: nodejs-env
+      labels:
+        status: "dev"
+        app: nodejs-env
+      annotations:
+        app: this is example for downward api
+    spec:
+      containers:
+        - name: nodejs-env
+          image: khannedy/nodejs-env
+          ports:
+            - containerPort: 30001
+          envFrom:
+            - configMapRef:
+                name: nodejs-env-config
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: NAME_SPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: POD_NODE
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: POD_NODE_API
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: REQUEST_CPU
+              valueFrom:
+                fieldRef:
+                  fieldPath: requests.cpu
+            - name: REQUEST_MEMORY
+              valueFrom:
+                fieldRef:
+                  fieldPath: requests.memory
+            - name: LIMIT_CPU
+              valueFrom:
+                fieldRef:
+                  fieldPath: limits.cpu
+            - name: LIMIT_MEMORY
+              valueFrom:
+                fieldRef:
+                  fieldPath: limits.memory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodejs-service
+spec:
+  selector:
+    app: nodejs-env
+  ports:
+  - port: 80
+    targetPort: 30001
+
+
+

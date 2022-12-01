@@ -1,0 +1,67 @@
+# Computational Resource
+# Secara default kita akan menggunakan resource yang dimiliki Node dimna Pod kita berada
+# kadang kita ingin membatasi resource yang akan digunakan oleh Pod
+# Hal ini silakukan agar tidak terjadi rebutan resource antara Pod
+# Jangan sampai jiaka ada Pod yang sibuk, membuat Pod yang ada pada 1 node yang sama menjadi lambat karena
+# resource nya terpakai oleh Pod yang sibuk
+
+# Request dan Limit
+# Adalah mekanisme kubernetes untuk mengontrol penggunaan memory dan cpu
+# Request adalah resource yang diminta oleh container
+# Limit adalah untuk membatasi Container agar tidak mengkonsumsi resource yang telah ditentukan.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-web
+  labels:
+    app: nodejs-web
+spec:
+  replicas: 3
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - "nodejs-web"
+    matchLabels:
+      name: nodejs
+  template:
+    metadata:
+      name: nodejs-web
+      labels:
+        app: nodejs-web
+        name: nodejs
+      annotations:
+        description: this is example for limit resource in Pod
+    spec:
+      containers:
+        - name: nodejs-web
+          image: khannedy/nodejs-web:1
+          ports:
+            - containerPort: 3000
+          resources:
+            # di block request ini untuk memetakan per Pod dikasih resource seberapa
+            requests:
+            # 1000m (seribu mili core) samadengan 1 core
+              cpu: 200m
+            # mebibyte
+              memory: 500Mi
+            # di block limits ini untuk memebatasi maksimum konsumsi resource dari pod itu seberapa
+            limits:
+              cpu: 200m
+              memory: 500Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodejs-service
+spec:
+  type: NodePort
+  selector:
+    app: nodejs-web
+    name: nodejs
+  ports:
+  - port: 8080
+    targetPort: 3000
+    nodePort: 30001
+
